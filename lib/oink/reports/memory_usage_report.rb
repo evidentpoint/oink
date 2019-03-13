@@ -19,6 +19,20 @@ module Oink
              # Skip this line since we're only interested in the Hodel 3000 compliant lines
             next unless line =~ HODEL_LOG_FORMAT_REGEX
 
+            date = $1
+
+            # Check date threshold
+            if @after_time || @before_time
+              begin
+                parsed_date = Time.parse(date)
+                next if @after_time && parsed_date <= @after_time
+                next if @before_time && parsed_date >= @before_time
+              rescue => e
+                STDERR.puts "Error parsing time: #{date}"
+                next
+              end
+            end
+
             if line =~ /rails\[(\d+)\]/
               pid = $1
               @pids[pid] ||= { :buffer => [], :last_memory_reading => -1, :current_memory_reading => -1, :action => "", :request_finished => true }
@@ -46,7 +60,6 @@ module Oink
                 if memory_diff > @threshold
                   @bad_actions[@pids[pid][:action]] ||= 0
                   @bad_actions[@pids[pid][:action]] = @bad_actions[@pids[pid][:action]] + 1
-                  date = HODEL_LOG_FORMAT_REGEX.match(line).captures[0]
                   @bad_requests.push(MemoryOinkedRequest.new(@pids[pid][:action], date, @pids[pid][:buffer], memory_diff))
                   if @format == :verbose
                     @pids[pid][:buffer].each { |b| output.puts b }

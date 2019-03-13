@@ -1,4 +1,7 @@
 require 'optparse'
+require 'optparse/time'
+require 'time'
+
 require 'oink/reports/base'
 require 'oink/reports/active_record_instantiation_report'
 require 'oink/reports/memory_usage_report'
@@ -39,6 +42,13 @@ module Oink
            options[:type] = :active_record
         end
 
+        opts.on("-A", "--after [Time]", Time, "Only check records after specified time") do |v|
+          options[:after_time] = v
+        end
+
+        opts.on("-B", "--before [Time]", Time, "Only check records before specified time") do |v|
+          options[:before_time] = v
+        end
       end
 
       op.parse!(@args)
@@ -65,13 +75,13 @@ module Oink
         options[:threshold] ||= 75
         options[:threshold] *= 1024
 
-        Oink::Reports::MemoryUsageReport.new(handles, options[:threshold], :format => options[:format]).print(output)
+        Oink::Reports::MemoryUsageReport.new(handles, options[:threshold], options).print(output)
 
       elsif options[:type] == :active_record
 
         options[:threshold] ||= 500
 
-        Oink::Reports::ActiveRecordInstantiationReport.new(handles, options[:threshold], :format => options[:format]).print(output)
+        Oink::Reports::ActiveRecordInstantiationReport.new(handles, options[:threshold], options).print(output)
 
       end
 

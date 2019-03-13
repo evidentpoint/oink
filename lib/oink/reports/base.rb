@@ -15,6 +15,9 @@ module Oink
         @bad_actions = {}
         @bad_actions_averaged = {}
         @bad_requests = PriorityQueue.new(10)
+
+        @after_time = options[:after_time]
+        @before_time = options[:before_time]
       end
 
     protected
