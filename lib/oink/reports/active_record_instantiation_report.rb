@@ -17,10 +17,12 @@ module Oink
           input.each_line do |line|
             line = line.strip
 
-             # Skip this line since we're only interested in the Hodel 3000 compliant lines
-            next unless line =~ HODEL_LOG_FORMAT_REGEX
+            # Skip this line since we're only interested in the Hodel 3000 compliant lines
+            parsed = @parser.parse(line)
+            next unless parsed
 
-            date = $1
+            date = parsed[:date]
+            pid = parsed[:pid]
 
             # Check date threshold
             if @after_time || @before_time
@@ -34,11 +36,8 @@ module Oink
               end
             end
 
-            if line =~ /rails\[(\d+)\]/
-              pid = $1
-              @pids[pid] ||= { :buffer => [], :ar_count => -1, :action => "", :request_finished => true }
-              @pids[pid][:buffer] << line
-            end
+            @pids[pid] ||= { :buffer => [], :ar_count => -1, :action => "", :request_finished => true }
+            @pids[pid][:buffer] << line
 
             if line =~ /Oink Action: (([\w\/]+)#(\w+))/
 

@@ -2,6 +2,7 @@ require 'optparse'
 require 'optparse/time'
 require 'time'
 
+require 'oink/parsers/stdlib_parser'
 require 'oink/reports/base'
 require 'oink/reports/active_record_instantiation_report'
 require 'oink/reports/memory_usage_report'
@@ -40,6 +41,10 @@ module Oink
 
         opts.on("-r", "--active-record", "Check for Active Record Threshold") do |v|
            options[:type] = :active_record
+        end
+
+        opts.on("-p", "--parser (hodel|stdlib)", "Use specified parser") do |v|
+          options[:parser] = Oink::Parsers::StdlibParser if v == 'stdlib'
         end
 
         opts.on("-A", "--after [Time]", Time, "Only check records after specified time") do |v|
