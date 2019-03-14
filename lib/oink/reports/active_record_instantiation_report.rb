@@ -6,8 +6,8 @@ require "oink/reports/priority_queue"
 module Oink
   module Reports
     class ActiveRecordInstantiationReport < Base
-
       def print(output)
+        oink_entry_count = 0
         output.puts "---- OINK FOR ACTIVERECORD ----"
         output.puts "THRESHOLD: #{@threshold} Active Record objects per request\n"
 
@@ -53,6 +53,7 @@ module Oink
 
             elsif line =~ /Oink Log Entry Complete/
 
+              oink_entry_count += 1
               if @pids[pid][:ar_count] > @threshold
                 @bad_actions[@pids[pid][:action]] ||= 0
                 @bad_actions[@pids[pid][:action]] = @bad_actions[@pids[pid][:action]] + 1
@@ -71,6 +72,7 @@ module Oink
           end # end each_line
         end # end each input
 
+        output.puts "---- Oink Entries Parsed: #{oink_entry_count} ----\n" if @format == :verbose
         print_summary(output)
 
       end
