@@ -17,14 +17,15 @@ module Oink
           input.each_line do |line|
             line = line.strip
 
-             # Skip this line since we're only interested in the Hodel 3000 compliant lines
-            next unless line =~ HODEL_LOG_FORMAT_REGEX
+            # Skip this line since we're only interested in the Hodel 3000 compliant lines
+            parsed = @parser.parse(line)
+            next unless parsed
 
-            if line =~ /rails\[(\d+)\]/
-              pid = $1
-              @pids[pid] ||= { :buffer => [], :ar_count => -1, :action => "", :request_finished => true }
-              @pids[pid][:buffer] << line
-            end
+            date = parsed[:date]
+            pid = parsed[:pid]
+
+            @pids[pid] ||= { :buffer => [], :ar_count => -1, :action => "", :request_finished => true }
+            @pids[pid][:buffer] << line
 
             if line =~ /Oink Action: (([\w\/]+)#(\w+))/
 
@@ -43,7 +44,6 @@ module Oink
               if @pids[pid][:ar_count] > @threshold
                 @bad_actions[@pids[pid][:action]] ||= 0
                 @bad_actions[@pids[pid][:action]] = @bad_actions[@pids[pid][:action]] + 1
-                date = HODEL_LOG_FORMAT_REGEX.match(line).captures[0]
                 @bad_requests.push(ActiveRecordInstantiationOinkedRequest.new(@pids[pid][:action], date, @pids[pid][:buffer], @pids[pid][:ar_count]))
                 if @format == :verbose
                   @pids[pid][:buffer].each { |b| output.puts b }

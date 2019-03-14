@@ -1,4 +1,5 @@
 require 'optparse'
+require 'oink/parsers/stdlib_parser'
 require 'oink/reports/base'
 require 'oink/reports/active_record_instantiation_report'
 require 'oink/reports/memory_usage_report'
@@ -39,6 +40,9 @@ module Oink
            options[:type] = :active_record
         end
 
+        opts.on("-p", "--parser (hodel|stdlib)", "Use specified parser") do |v|
+          options[:parser] = Oink::Parsers::StdlibParser if v == 'stdlib'
+        end
       end
 
       op.parse!(@args)
@@ -65,13 +69,13 @@ module Oink
         options[:threshold] ||= 75
         options[:threshold] *= 1024
 
-        Oink::Reports::MemoryUsageReport.new(handles, options[:threshold], :format => options[:format]).print(output)
+        Oink::Reports::MemoryUsageReport.new(handles, options[:threshold], options).print(output)
 
       elsif options[:type] == :active_record
 
         options[:threshold] ||= 500
 
-        Oink::Reports::ActiveRecordInstantiationReport.new(handles, options[:threshold], :format => options[:format]).print(output)
+        Oink::Reports::ActiveRecordInstantiationReport.new(handles, options[:threshold], options).print(output)
 
       end
 

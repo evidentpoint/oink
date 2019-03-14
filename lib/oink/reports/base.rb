@@ -1,10 +1,11 @@
+require 'oink/parsers/hodel_parser'
+
 module Oink
   module Reports
     class Base
 
       FORMATS = %w[verbose short-summary summary]
       FORMAT_ALIASES = { "v" => "verbose", "ss" => "short-summary", "s" => "summary" }
-      HODEL_LOG_FORMAT_REGEX = /^(\w+ \d{2} \d{2}:\d{2}:\d{2})/
 
       def initialize(input, threshold, options = {})
         @inputs = Array(input)
@@ -15,6 +16,7 @@ module Oink
         @bad_actions = {}
         @bad_actions_averaged = {}
         @bad_requests = PriorityQueue.new(10)
+        @parser = options[:parser] || Oink::Parsers::HodelParser
       end
 
     protected
